@@ -2,7 +2,7 @@ import os
 import random
 
 DIV2K_DIR = "data/div2k/"
-LR_DIR = lambda s, d, scl: DIV2K_DIR + "/DIV2K_" + s + "_LR_" + d + "/X" + scl + "/"
+LR_DIR = lambda s, d, scl: DIV2K_DIR + "/DIV2K_" + s + "_LR_" + d + "/X" + str(scl) + "/"
 HR_DIR = lambda s: DIV2K_DIR + "DIV2K_" + s + "_HR/"
 
 class Div2k:
@@ -24,5 +24,5 @@ class Div2k:
         while True:
             image_id = random.choice(self.image_ids)
             hr_path = self.hr_dir + image_id + ".png"
-            lr_path = self.lr_dir + image_id + "x" + self.scale + ".png"
+            lr_path = self.lr_dir + image_id + "x" + str(self.scale) + ".png"
             yield lr_path, hr_path

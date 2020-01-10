@@ -2,3 +2,4 @@ data/div2k
 data/set5
 venv
 .vscode
+**/__pycache__
