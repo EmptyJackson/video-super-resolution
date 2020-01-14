@@ -2,6 +2,7 @@ import sys
 import utils
 import datasets
 import tensorflow as tf
+
 from datasets.div2k import Div2k
 
 class Dataset:
@@ -33,7 +34,7 @@ class Dataset:
         tf_dataset = tf_dataset.map(self._preprocess_image)
         tf_dataset = tf_dataset.batch(self.batch_size)
         tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
-        tf_dataset = tf_dataset.cache()
+        #tf_dataset = tf_dataset.cache()
         return tf_dataset
 
     def _load_image(self, lr_file, hr_file):
@@ -44,7 +45,6 @@ class Dataset:
     def _preprocess_image(self, lr_image, hr_image):
         """ Randomly crops low- and high-resolution images to correspond with lr_shape """
         full_lr_shape = tf.shape(lr_image)
-        tf.print(lr_image)#, output_stream=sys.stdout)
         lr_up = tf.random.uniform(
             shape=[],
             minval=0,
@@ -59,8 +59,10 @@ class Dataset:
                                    [self.lr_shape[0], self.lr_shape[1], -1])
         hr_up = lr_up * self.scale
         hr_left = lr_left * self.scale
-        hr_shape = self.lr_shape * self.scale
-        hr_shape[2] = self.lr_shape[2]        # Don't scale channel dimension
+        hr_shape = [x * self.scale for x in self.lr_shape[:2]]
         scaled_hr_image = tf.slice(hr_image, [hr_up, hr_left, 0],
                                    [hr_shape[0], hr_shape[1], -1])
+        
+        scaled_lr_image = tf.cast(scaled_lr_image, tf.float32) / 255.0
+        scaled_hr_image = tf.cast(scaled_hr_image, tf.float32) / 255.0
         return scaled_lr_image, scaled_hr_image
