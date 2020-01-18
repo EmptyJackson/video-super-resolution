@@ -1,3 +1,4 @@
+import os
 import sys
 import utils
 import datasets
@@ -27,6 +28,9 @@ class Dataset:
         self.lr_shape = lr_shape
         self.batch_size = batch_size
         self.prefetch_buffer_size = prefetch_buffer_size
+
+    def get_num_batches(self):
+        return int(self.dataset.get_size() / self.batch_size)
 
     def build_tf_dataset(self):
         tf_dataset = tf.data.Dataset.from_generator(self.dataset.get_image_pair,

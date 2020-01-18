@@ -21,8 +21,11 @@ class Div2k:
         self.image_ids = [filename[:4] for filename in os.listdir(self.hr_dir)]
     
     def get_image_pair(self):
-        while True:
-            image_id = random.choice(self.image_ids)
+        random.shuffle(self.image_ids)
+        for image_id in self.image_ids:
             hr_path = self.hr_dir + image_id + ".png"
             lr_path = self.lr_dir + image_id + "x" + str(self.scale) + ".png"
             yield lr_path, hr_path
+
+    def get_size(self):
+        return len(self.image_ids)
