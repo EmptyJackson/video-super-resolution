@@ -1,8 +1,9 @@
 #!/bin/bash
 
 ## Div2k
-if [ -d "./div2k" ]; then rm -Rf div2k; fi
-if [ -d "./tmp" ]; then rm -Rf tmp; fi
+cd $(dirname "$0" )
+if [ -d "div2k" ]; then rm -Rf div2k; fi
+if [ -d "tmp" ]; then rm -Rf tmp; fi
 mkdir tmp
 mkdir div2k
 wget http://data.vision.ee.ethz.ch/cvl/DIV2K/DIV2K_train_HR.zip tmp
