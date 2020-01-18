@@ -1,11 +1,16 @@
 import os
+import sys
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 from dataset import Dataset
 from models.fsrcnn import fsrcnn
 from models.simple import simple_model
+
+CHECKPOINT_DIR = './checkpoints/'
+MODEL_WEIGHTS_PATH = lambda model, x, r, i: CHECKPOINT_DIR + model + '_x' + str(x) + '_' + r + '_' + str(i) + '.h5'
 
 """
 def halt_training(model, criterion):
@@ -14,14 +19,28 @@ def halt_training(model, criterion):
 """
 
 @tf.function
-def train(model, tf_dataset, stopping_criterion, learn_rate):
-    # for epoch in range(1, stopping_criterion.epochs+1):
-    for lr_image, hr_image in tf_dataset:#.take(10):
-        train_step(model, tf.losses.mean_squared_error, lr_image, hr_image, learn_rate)
+def train(model, tf_dataset, stopping_criterion, learn_rate, ckpt_args):
+    if ckpt_args.completed:
+        weights_path = MODEL_WEIGHTS_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, ckpt_args.completed)
+        model.load_weights(weights_path)
+        tf.print('Restored model weights from ' + weights_path)
 
+    opt = tf.optimizers.Adam(learn_rate)
+    for epoch in range(1, stopping_criterion['epochs']+1):
+        i = 0
+        for lr_image, hr_image in tf_dataset:
+            train_step(model, opt, tf.losses.mean_squared_error, lr_image, hr_image)
+            i += 1
+            if (i % 5 == 0):
+                break
+        tf.print("Epoch complete.")
+        if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
+            weights_path = MODEL_WEIGHTS_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, epoch+ckpt_args.completed)
+            model.save_weights(weights_path)
+            tf.print(weights_path + " saved.")
 
 @tf.function
-def train_step(model, loss_fn, lr_image, hr_image, learn_rate):
+def train_step(model, opt, loss_fn, lr_image, hr_image):
     lr_image = tf.cast(lr_image, tf.float32) / 255.0
     hr_image = tf.cast(hr_image, tf.float32) / 255.0
 
@@ -35,7 +54,6 @@ def train_step(model, loss_fn, lr_image, hr_image, learn_rate):
         #tf.print(hr_pred)
 
     grads = tape.gradient(loss, model.trainable_variables)
-    opt = tf.optimizers.Adam(learn_rate)
     opt.apply_gradients(zip(grads, model.trainable_variables))
 
     #tf.print(hr_pred)
@@ -43,12 +61,32 @@ def train_step(model, loss_fn, lr_image, hr_image, learn_rate):
     #tf.print(tf.reduce_mean(tf.image.psnr(hr_image, hr_pred, max_val=1.0)))
     #tf.reduce_mean(tf.reduce_sum(tf.square(self.labels - self.pred), reduction_indices=0))
     tf.print(tf.reduce_mean(loss))
-    return opt
 
+class CheckpointArgs:
+    """
+    Stores training checkpoint information.
+    Set epochs = 0 to disable checkpointing.
+    """
+    def __init__(self, epochs, completed=0, model="", scale=2, res=240):
+        if epochs < 0:
+            raise ValueError('Epoch checkpoint frequency must be non-negative.')
+        self.epochs = epochs
+        self.completed = completed
+        self.model = model
+        self.scale = scale
+        self.res = str(res) + 'p'
 
 def main():
     lr_shape = [240,352,3]
     batch_size = 4
+
+    ckpt_args = CheckpointArgs(
+        epochs=2,
+        completed=0,
+        model='fsrcnn',
+        scale=2,
+        res=lr_shape[0]
+    )
     
     model = fsrcnn(
         in_shape=lr_shape,
@@ -61,22 +99,24 @@ def main():
         scale=2
     )
     """
+
     stopping_criterion = {
-        'epochs': 10
+        'epochs': 8
     }
 
     div2k = Dataset(
         'div2k',
         lr_shape=lr_shape,
         scale=2,
-        subset='train',
+        subset='valid',
         downscale='bicubic',
         batch_size=batch_size,
         prefetch_buffer_size=4
     )
     tf_dataset = div2k.build_tf_dataset()
-        
-    train(model, tf_dataset, stopping_criterion, learn_rate=1e-3)
+    
+    # CHANGE LR BACK TO 1E-3!!!!!!!!!! (WITH LARGER BATCH SIZE)
+    train(model, tf_dataset, stopping_criterion, 1e-4, ckpt_args)
 
 
 if __name__=='__main__':

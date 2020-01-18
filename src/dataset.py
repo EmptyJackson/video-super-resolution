@@ -2,6 +2,7 @@ import sys
 import utils
 import datasets
 import tensorflow as tf
+tf.config.experimental_run_functions_eagerly(True)
 
 from datasets.div2k import Div2k
 
@@ -63,6 +64,8 @@ class Dataset:
         scaled_hr_image = tf.slice(hr_image, [hr_up, hr_left, 0],
                                    [hr_shape[0], hr_shape[1], -1])
         
-        scaled_lr_image = tf.cast(scaled_lr_image, tf.float32) / 255.0
-        scaled_hr_image = tf.cast(scaled_hr_image, tf.float32) / 255.0
+        #scaled_lr_image = tf.cast(scaled_lr_image, tf.float32) / 255.0
+        #scaled_hr_image = tf.cast(scaled_hr_image, tf.float32) / 255.0
+        scaled_lr_image = tf.image.convert_image_dtype(scaled_lr_image, dtype=tf.float32)
+        scaled_hr_image = tf.image.convert_image_dtype(scaled_hr_image, dtype=tf.float32)
         return scaled_lr_image, scaled_hr_image

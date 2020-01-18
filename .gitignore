@@ -3,3 +3,6 @@ data/set5
 venv
 .vscode
 **/__pycache__
+
+checkpoints/*
+!checkpoints/README.md
