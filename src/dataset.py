@@ -12,13 +12,13 @@ class Dataset:
                  dataset="div2k",
                  lr_shape=[480,640,3],
                  scale=2,
-                 subset="train",
                  downscale="bicubic",
                  batch_size=16,
                  prefetch_buffer_size=4):
         
         if dataset == 'div2k':
-            self.dataset = Div2k(scale, subset, downscale)
+            self.train_dataset = Div2k(scale, "train", downscale)
+            self.val_dataset = Div2k(scale, "valid", downscale)
         elif dataset == 'set5':
             raise NotImplementedError("Set5 support not yet implemented")
         else:
@@ -29,11 +29,18 @@ class Dataset:
         self.batch_size = batch_size
         self.prefetch_buffer_size = prefetch_buffer_size
 
-    def get_num_batches(self):
-        return int(self.dataset.get_size() / self.batch_size)
+    def get_num_train_batches(self):
+        return int(self.train_dataset.get_size() / self.batch_size)
 
-    def build_tf_dataset(self):
-        tf_dataset = tf.data.Dataset.from_generator(self.dataset.get_image_pair,
+    def build_dataset(self, mode='train'):
+        if mode=='train':
+            dataset = self.train_dataset
+        elif mode=='valid':
+            dataset = self.val_dataset
+        else:
+            raise ValueError("Dataset mode must be in ['train', 'valid']")
+
+        tf_dataset = tf.data.Dataset.from_generator(dataset.get_image_pair,
                                                     output_types=(tf.string, tf.string))
         tf_dataset = tf_dataset.map(self._load_image)
         tf_dataset = tf_dataset.map(self._preprocess_image)
