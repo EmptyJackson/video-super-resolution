@@ -2,7 +2,6 @@ import os
 import sys
 import datasets
 import tensorflow as tf
-tf.config.experimental_run_functions_eagerly(True)
 
 from datasets.div2k import Div2k
 

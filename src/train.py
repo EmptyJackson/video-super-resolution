@@ -19,7 +19,6 @@ def halt_training(model, criterion):
     return true/false
 """
 
-@tf.function
 def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckpt_args, train_batches):
     if ckpt_args.completed:
         weights_path = MODEL_WEIGHTS_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, ckpt_args.completed)
@@ -30,7 +29,7 @@ def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckp
 
     opt = tf.optimizers.Adam(learn_rate)
     for epoch in range(1, stopping_criterion['epochs']+1):
-        train_loss = 0
+        train_loss = 0.
         progbar = tf.keras.utils.Progbar(train_batches, unit_name='batch')
         for lr_batch, hr_batch in train_dataset:
             train_loss += train_step(model, opt, tf.losses.mean_squared_error, lr_batch, hr_batch)
@@ -73,12 +72,12 @@ def train_step(model, opt, loss_fn, lr_batch, hr_batch):
 
 @tf.function
 def eval_model(model, dataset, loss_fn):
-    i = 0
-    loss = 0
+    i = 0.
+    loss = 0.
     for lr_image, hr_image in dataset:
         hr_pred = model(lr_image)
         loss += tf.reduce_mean(loss_fn(hr_image, hr_pred))
-        i += 1
+        i += 1.
     loss /= i
     return loss
 
