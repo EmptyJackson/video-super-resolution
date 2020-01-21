@@ -6,12 +6,9 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+from utils import get_resolution
 from dataset import Dataset
-from models.fsrcnn import fsrcnn
-from models.simple import simple_model
-
-CHECKPOINT_DIR = './checkpoints/'
-MODEL_WEIGHTS_PATH = lambda model, x, r, i: CHECKPOINT_DIR + model + '_x' + str(x) + '_' + r + '_' + str(i) + '.h5'
+from models.model_io import load_model, save_model_arch, save_model_weights
 
 """
 def halt_training(model, criterion):
@@ -20,12 +17,8 @@ def halt_training(model, criterion):
 """
 
 def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckpt_args, train_batches):
-    if ckpt_args.completed:
-        weights_path = MODEL_WEIGHTS_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, ckpt_args.completed)
-        model.load_weights(weights_path)
-        tf.print('Restored model weights from ' + weights_path)
-    else:
-        tf.print('Training model from scratch')
+    if ckpt_args.epochs and not ckpt_args.completed:
+        save_model_arch(model, ckpt_args)
 
     opt = tf.optimizers.Adam(learn_rate)
     for epoch in range(1, stopping_criterion['epochs']+1):
@@ -41,10 +34,8 @@ def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckp
         tf.print("Train loss:", train_loss, "   Validation loss: ", val_loss)
 
         if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
-            weights_path = MODEL_WEIGHTS_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, epoch+ckpt_args.completed)
-            model.save_weights(weights_path)
-            tf.print(weights_path + " saved.")
-        tf.print()
+            save_model_weights(model, epoch, ckpt_args)
+            tf.print()
 
 @tf.function
 def train_step(model, opt, loss_fn, lr_batch, hr_batch):
@@ -93,7 +84,7 @@ class CheckpointArgs:
         self.completed = completed
         self.model = model
         self.scale = scale
-        self.res = str(res) + 'p'
+        self.res = res
 
 def main():
     parser=argparse.ArgumentParser(
@@ -102,13 +93,15 @@ def main():
     )
     parser.add_argument('--model', default="fsrcnn", help="name of model")
     parser.add_argument('--scale', default=2, type=int, help="factor by which to upscale the given model")
+    parser.add_argument('--resolution', default=240, type=int, help="height of low resolution image")
     parser.add_argument('--epochs', default=100, type=int, help="training epochs")
     parser.add_argument('--pre_epochs', default=0, type=int,  help="restores model weights from checkpoint with given epochs of pretraining; set to 0 to train from scratch")
     parser.add_argument('--ckpt_epochs', default=0, type=int, help="number of training epochs in between checkpoints; set to 0 to not save checkpoints")
 
     args = parser.parse_args()
 
-    lr_shape = [240,352,3]
+    lr_shape = get_resolution(args.resolution)
+    lr_shape.append(3) # Colour channels
     batch_size = 16
 
     ckpt_args = CheckpointArgs(
@@ -116,21 +109,8 @@ def main():
         completed=args.pre_epochs,
         model=args.model,
         scale=args.scale,
-        res=lr_shape[0]
+        res=args.resolution
     )
-    
-    if args.model == 'fsrcnn':
-        model = fsrcnn(
-            in_shape=lr_shape,
-            fsrcnn_args=(48, 12, 2),#(48,12,3),  # (d, s, m)
-            scale=args.scale
-        )
-    """
-    model = simple_model(
-        in_shape=lr_shape,
-        scale=2
-    )
-    """
 
     stopping_criterion = {
         'epochs': args.epochs
@@ -148,6 +128,7 @@ def main():
     train_dataset = div2k.build_dataset('train')
     val_dataset = div2k.build_dataset('valid')
 
+    model = load_model(ckpt_args)
     train(model, train_dataset, val_dataset, stopping_criterion, 1e-3, ckpt_args, div2k.get_num_train_batches())
 
 
