@@ -37,7 +37,7 @@ def load_model(ckpt_args):
         if ckpt_args.model == 'fsrcnn':
             model = fsrcnn(
                 in_shape=lr_shape,
-                fsrcnn_args=(48, 12, 2),#(48,12,3),  # (d, s, m)
+                fsrcnn_args=(48, 12, 3),#(48,12,3),  # (d, s, m)
                 scale=ckpt_args.scale
             )
         else:
