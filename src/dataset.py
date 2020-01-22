@@ -41,6 +41,7 @@ class Dataset:
         tf_dataset = tf.data.Dataset.from_generator(dataset.get_image_pair,
                                                     output_types=(tf.string, tf.string))
         tf_dataset = tf_dataset.map(self._load_image)
+        tf_dataset = tf_dataset.filter(self._is_minimum_size)
         tf_dataset = tf_dataset.map(self._preprocess_image)
         tf_dataset = tf_dataset.batch(self.batch_size)
         tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
@@ -52,19 +53,34 @@ class Dataset:
         hr_image = tf.image.decode_png(tf.io.read_file(hr_file), channels=self.lr_shape[2])
         return lr_image, hr_image
 
+    def _is_minimum_size(self, lr_image, hr_image):
+        full_lr_shape = tf.shape(lr_image)
+        return full_lr_shape[0] >= self.lr_shape[0] and full_lr_shape[1] >= self.lr_shape[1]
+
     def _preprocess_image(self, lr_image, hr_image):
         """ Randomly crops low- and high-resolution images to correspond with lr_shape """
         full_lr_shape = tf.shape(lr_image)
-        lr_up = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=full_lr_shape[0] - self.lr_shape[0],
-            dtype=tf.int32)
-        lr_left = tf.random.uniform(
-            shape=[],
-            minval=0,
-            maxval=full_lr_shape[1] - self.lr_shape[1],
-            dtype=tf.int32)
+        h_diff = full_lr_shape[0] - self.lr_shape[0]
+        w_diff = full_lr_shape[1] - self.lr_shape[1]
+
+        if h_diff > 0:  
+            lr_up = tf.random.uniform(
+                shape=[],
+                minval=0,
+                maxval=h_diff,
+                dtype=tf.int32)
+        else:
+            lr_up = 0
+            
+        if w_diff > 0:    
+            lr_left = tf.random.uniform(
+                shape=[],
+                minval=0,
+                maxval=w_diff,
+                dtype=tf.int32)
+        else:
+            lr_left = 0
+
         scaled_lr_image = tf.slice(lr_image, [lr_up, lr_left, 0],
                                    [self.lr_shape[0], self.lr_shape[1], -1])
         hr_up = lr_up * self.scale
