@@ -18,8 +18,8 @@ def halt_training(model, criterion):
 
 def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq):
     tf.print("Building datasets")
-    train_dataset = div2k.build_dataset('train')
-    val_dataset = div2k.build_dataset('valid')
+    train_dataset = dataset.build_dataset('train')
+    val_dataset = dataset.build_dataset('valid')
     
     if ckpt_args.epochs and not ckpt_args.completed:
         save_model_arch(model, ckpt_args)
@@ -43,7 +43,7 @@ def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batch
 
         if (epoch % rebuild_freq) == 0:
             tf.print("Rebuilding train dataset")
-            train_dataset = div2k.build_dataset('train')
+            train_dataset = dataset.build_dataset('train')
 
 @tf.function
 def train_step(model, opt, loss_fn, lr_batch, hr_batch):
