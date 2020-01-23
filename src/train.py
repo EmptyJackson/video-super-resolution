@@ -103,6 +103,7 @@ def main():
     parser.add_argument('--scale', default=2, type=int, help="factor by which to upscale the given model")
     parser.add_argument('--resolution', default=240, type=int, help="height of low resolution image")
     parser.add_argument('--learn_rate', default=1e-3, type=float, help="initial learning rate of optimizer")
+    parser.add_argument('--rebuild_freq', default=20, type=int, help="frequency to rebuild dataset (epochs)")
     parser.add_argument('--epochs', default=100, type=int, help="training epochs")
     parser.add_argument('--pre_epochs', default=0, type=int,  help="restores model weights from checkpoint with given epochs of pretraining; set to 0 to train from scratch")
     parser.add_argument('--ckpt_epochs', default=0, type=int, help="number of training epochs in between checkpoints; set to 0 to not save checkpoints")
@@ -136,7 +137,7 @@ def main():
 
     model = load_model(ckpt_args)
     train(model, div2k, stopping_criterion, args.learn_rate,
-          ckpt_args, div2k.get_num_train_batches())
+          ckpt_args, div2k.get_num_train_batches(), args.rebuild_freq)
 
 
 if __name__=='__main__':
