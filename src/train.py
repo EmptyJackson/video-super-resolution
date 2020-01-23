@@ -16,7 +16,11 @@ def halt_training(model, criterion):
     return true/false
 """
 
-def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckpt_args, train_batches):
+def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq):
+    tf.print("Building datasets")
+    train_dataset = div2k.build_dataset('train')
+    val_dataset = div2k.build_dataset('valid')
+    
     if ckpt_args.epochs and not ckpt_args.completed:
         save_model_arch(model, ckpt_args)
 
@@ -36,6 +40,10 @@ def train(model, train_dataset, val_dataset, stopping_criterion, learn_rate, ckp
         if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
             save_model_weights(model, epoch, ckpt_args)
             tf.print()
+
+        if (epoch % rebuild_freq) == 0:
+            tf.print("Rebuilding train dataset")
+            train_dataset = div2k.build_dataset('train')
 
 @tf.function
 def train_step(model, opt, loss_fn, lr_batch, hr_batch):
@@ -117,7 +125,6 @@ def main():
         'epochs': args.epochs
     }
 
-    print("Building datasets")
     div2k = Dataset(
         'div2k',
         lr_shape=lr_shape,
@@ -126,11 +133,10 @@ def main():
         batch_size=batch_size,
         prefetch_buffer_size=4
     )
-    train_dataset = div2k.build_dataset('train')
-    val_dataset = div2k.build_dataset('valid')
 
     model = load_model(ckpt_args)
-    train(model, train_dataset, val_dataset, stopping_criterion, args.learn_rate, ckpt_args, div2k.get_num_train_batches())
+    train(model, div2k, stopping_criterion, args.learn_rate,
+          ckpt_args, div2k.get_num_train_batches())
 
 
 if __name__=='__main__':

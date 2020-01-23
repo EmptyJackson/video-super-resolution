@@ -15,8 +15,8 @@ class Dataset:
                  prefetch_buffer_size=4):
         
         if dataset == 'div2k':
-            self.train_dataset = Div2k(scale, "train", downscale)
-            self.val_dataset = Div2k(scale, "valid", downscale)
+            self.train_dataset = Div2k(lr_shape, scale, "train", downscale)
+            self.val_dataset = Div2k(lr_shape, scale, "valid", downscale)
         elif dataset == 'set5':
             raise NotImplementedError("Set5 support not yet implemented")
         else:
@@ -40,8 +40,8 @@ class Dataset:
 
         tf_dataset = tf.data.Dataset.from_generator(dataset.get_image_pair,
                                                     output_types=(tf.string, tf.string))
+        tf_dataset = tf_dataset.shuffle(dataset.get_size())
         tf_dataset = tf_dataset.map(self._load_image)
-        tf_dataset = tf_dataset.filter(self._is_minimum_size)
         tf_dataset = tf_dataset.map(self._preprocess_image)
         tf_dataset = tf_dataset.batch(self.batch_size)
         tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
@@ -52,10 +52,6 @@ class Dataset:
         lr_image = tf.image.decode_png(tf.io.read_file(lr_file), channels=self.lr_shape[2])
         hr_image = tf.image.decode_png(tf.io.read_file(hr_file), channels=self.lr_shape[2])
         return lr_image, hr_image
-
-    def _is_minimum_size(self, lr_image, hr_image):
-        full_lr_shape = tf.shape(lr_image)
-        return full_lr_shape[0] >= self.lr_shape[0] and full_lr_shape[1] >= self.lr_shape[1]
 
     def _preprocess_image(self, lr_image, hr_image):
         """ Randomly crops low- and high-resolution images to correspond with lr_shape """
@@ -71,7 +67,7 @@ class Dataset:
                 dtype=tf.int32)
         else:
             lr_up = 0
-            
+
         if w_diff > 0:    
             lr_left = tf.random.uniform(
                 shape=[],
