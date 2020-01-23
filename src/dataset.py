@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import datasets
 import tensorflow as tf
 
@@ -28,7 +29,7 @@ class Dataset:
         self.prefetch_buffer_size = prefetch_buffer_size
 
     def get_num_train_batches(self):
-        return int(self.train_dataset.get_size() / self.batch_size)
+        return math.ceil(self.train_dataset.get_size() / self.batch_size)
 
     def build_dataset(self, mode='train'):
         if mode=='train':
