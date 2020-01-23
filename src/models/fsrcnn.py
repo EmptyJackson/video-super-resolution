@@ -104,7 +104,7 @@ def fsrcnn(in_shape,
             padding="same",
             name="transpose_conv"
         )(x)
-        x = relu(x)
+        #x = relu(x)
         """
         tf.nn.conv2d_transpose(
             x,
