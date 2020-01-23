@@ -24,7 +24,8 @@ class Div2k:
             image_id for image_id in self.image_ids if self._is_minimum_size(image_id, lr_shape)]
 
     def _is_minimum_size(self, image_id, lr_shape):
-        im = Image.open(image_filename)
+        im = Image.open(lr_path=self.lr_dir + image_id +
+                        "x" + str(self.scale) + ".png")
         width, height = im.size
         return height >= lr_shape[0] and width >= lr_shape[1]
 
