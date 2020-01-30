@@ -7,7 +7,8 @@ from models.model_io import load_model_from_dir
 @tf.function
 def get_prediction(model, lr_image):
     lr_image = tf.expand_dims(lr_image, 0)
-    return model(lr_image)
+    hr_pred = model(lr_image)
+    return tf.clip_by_value(hr_pred, 0., 1.)
 
 def main():
     if len(sys.argv) != 5:
