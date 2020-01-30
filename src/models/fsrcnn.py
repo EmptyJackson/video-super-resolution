@@ -49,7 +49,7 @@ def fsrcnn(in_shape,
             kernel_size=5,
             strides=1,
             padding="same",
-            kernel_initializer=tf.random_normal_initializer(stddev=0.001),
+            kernel_initializer=tf.random_normal_initializer(stddev=0.01),
             name="conv1"
         )(x_in)
         x = relu(x)
@@ -62,7 +62,7 @@ def fsrcnn(in_shape,
             kernel_size=1,
             strides=1,
             padding="same",
-            kernel_initializer=tf.random_normal_initializer(stddev=0.001),
+            kernel_initializer=tf.random_normal_initializer(stddev=0.01),
             name="conv2"
         )(x)
         x = relu(x)
@@ -76,7 +76,7 @@ def fsrcnn(in_shape,
                 kernel_size=3,
                 strides=1,
                 padding="same",
-                kernel_initializer=tf.random_normal_initializer(stddev=0.001),
+                kernel_initializer=tf.random_normal_initializer(stddev=0.01),
                 name="conv"+str(i+3)
             )(x)
             x = relu(x)
@@ -89,7 +89,7 @@ def fsrcnn(in_shape,
             kernel_size=1,
             strides=1,
             padding="same",
-            kernel_initializer=tf.random_normal_initializer(stddev=0.001),
+            kernel_initializer=tf.random_normal_initializer(stddev=0.01),
             name="conv01"
         )(x)
         x = relu(x)

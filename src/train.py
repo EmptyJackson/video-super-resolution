@@ -50,12 +50,12 @@ def train_step(model, opt, loss_fn, lr_batch, hr_batch):
     #lr_batch = tf.cast(lr_batch, tf.float32) / 255.0
     #hr_batch = tf.cast(hr_batch, tf.float32) / 255.0
 
-    tf.debugging.check_numerics(lr_batch, 'low')
-    tf.debugging.check_numerics(hr_batch, 'high')
+    #tf.debugging.check_numerics(lr_batch, 'low')
+    #tf.debugging.check_numerics(hr_batch, 'high')
 
     with tf.GradientTape() as tape:
         hr_pred = model(lr_batch)
-        tf.debugging.check_numerics(hr_pred, 'pred')
+        #tf.debugging.check_numerics(hr_pred, 'pred')
         loss = loss_fn(hr_batch, hr_pred)
         #tf.print(hr_pred)
 
