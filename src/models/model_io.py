@@ -3,6 +3,7 @@ import json
 import tensorflow as tf
 
 from models.fsrcnn import fsrcnn
+from models.edsr import edsr
 from utils import get_resolution
 
 CHECKPOINT_DIR = './checkpoints/'
@@ -39,6 +40,13 @@ def load_model(ckpt_args):
                 in_shape=lr_shape,
                 fsrcnn_args=(32, 5, 1),#(48,12,3),  # (d, s, m) #(32, 5, 1) for -s
                 scale=ckpt_args.scale
+            )
+        elif ckpt_args.model == 'edsr':
+            model = edsr(
+                in_shape=lr_shape,
+                scale=2,
+                num_filters=32, #64
+                num_res_blocks=4 #8
             )
         else:
             raise ValueError("Model '" + ckpt_args.model + "' not supported")

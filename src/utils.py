@@ -16,6 +16,7 @@ def load_image(image_file):
     lr_image = tf.image.decode_png(tf.io.read_file(image_file), channels=3)
     return tf.image.convert_image_dtype(lr_image, dtype=tf.float32)
 
+@tf.function
 def save_image_from_tensor(tensor, path):
     int_tensor = tf.image.convert_image_dtype(tensor, dtype=tf.uint8)
     int_tensor = tf.squeeze(int_tensor)
