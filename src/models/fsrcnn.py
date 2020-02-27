@@ -50,7 +50,8 @@ def fsrcnn(in_shape,
             strides=1,
             padding="same",
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
-            name="conv1"
+            name="conv1",
+            input_shape=in_shape
         )(x_in)
         x = relu(x)
         #x = tf.nn.bias_add(x, bias[0])
