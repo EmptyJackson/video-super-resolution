@@ -14,7 +14,6 @@ def get_prediction(model, lr_image):
 
 def main():
     nargs = len(sys.argv)
-    print(bool(sys.argv[3]))
     if nargs < 5 or (sys.argv[3] == 'bicubic' and nargs != 5) or (sys.argv[3] == 'network' and nargs != 6):
         print("Usage: upscale_image.py <input path> <output path> <method> [<scale> | <model dir> <checkpoint epoch>] \n")
         exit()

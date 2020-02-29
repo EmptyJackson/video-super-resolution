@@ -44,7 +44,7 @@ def load_model(ckpt_args):
         elif ckpt_args.model == 'edsr':
             model = edsr(
                 in_shape=lr_shape,
-                scale=2,
+                scale=ckpt_args.scale,
                 num_filters=32, #64
                 num_res_blocks=4 #8
             )
