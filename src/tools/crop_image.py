@@ -6,7 +6,7 @@ from PIL import Image
 RESOLUTIONS = { 240: 352, 360: 480, 480: 858, 720: 1280, 1080: 1920 }
 
 def main():
-    if len(sys.argv) != 4 or len(sys.argv) != 5:
+    if len(sys.argv) != 4 and len(sys.argv) != 5:
         print("Usage: crop_image.py <input path> <output path> <vertical resolution> [shape]\n")
         exit()
 
