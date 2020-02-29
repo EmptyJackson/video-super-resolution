@@ -21,20 +21,22 @@ def main():
 
     image_path_in = sys.argv[1]
     image_path_out = sys.argv[2]
-    is_bicubic = sys.argv[3]
+    method = sys.argv[3]
 
-    if is_bicubic:
+    if method == 'bicubic':
         scale = int(sys.argv[4])
         im = Image.open(image_path_in)
         hr_image = im.resize((im.width*scale, im.height*scale), Image.BICUBIC)
         hr_image.save(image_path_out)
-    else:
+    elif method == 'network':
         lr_image = load_image(image_path_in)
         model_dir = sys.argv[4]
         epoch = sys.argv[5]
         model = load_model_from_dir(model_dir, epoch)
         hr_image = get_prediction(model, lr_image)
         save_image_from_tensor(hr_image, image_path_out)
+    else:
+        raise ValueError('Upscale method must be in [network, bicubic]')
 
 if __name__=='__main__':
     main()
