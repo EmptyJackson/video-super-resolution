@@ -1,6 +1,8 @@
 import sys
 import tensorflow as tf
 
+from PIL import Image
+
 from utils import load_image, save_image_from_tensor
 from models.model_io import load_model_from_dir
 
@@ -11,20 +13,27 @@ def get_prediction(model, lr_image):
     return tf.clip_by_value(hr_pred, 0., 1.)
 
 def main():
-    if len(sys.argv) != 5:
-        print("Usage: upscale_image.py <model dir> <checkpoint epoch> <input path> <output path>\n")
+    nargs = len(sys.argv)
+    if nargs < 5 or (sys.argv[3] and nargs != 5) or (not sys.argv[3] and nargs != 6):
+        print("Usage: upscale_image.py <input path> <output path> <bicubic> [<scale> | <model dir> <checkpoint epoch>] \n")
         exit()
 
-    model_dir = sys.argv[1]
-    epoch = sys.argv[2]
-    image_path_in = sys.argv[3]
-    image_path_out = sys.argv[4]
+    image_path_in = sys.argv[1]
+    image_path_out = sys.argv[2]
+    is_bicubic = sys.argv[3]
 
-    model = load_model_from_dir(model_dir, epoch)
-    lr_image = load_image(image_path_in)
-    hr_image = get_prediction(model, lr_image)
-
-    save_image_from_tensor(hr_image, image_path_out)
+    if is_bicubic:
+        scale = int(sys.argv[4])
+        im = Image.open(image_path_in)
+        hr_image = im.resize((im.width*scale, im.height*scale), Image.BICUBIC)
+        hr_image.save(image_path_out)
+    else:
+        lr_image = load_image(image_path_in)
+        model_dir = sys.argv[4]
+        epoch = sys.argv[5]
+        model = load_model_from_dir(model_dir, epoch)
+        hr_image = get_prediction(model, lr_image)
+        save_image_from_tensor(hr_image, image_path_out)
 
 if __name__=='__main__':
     main()
