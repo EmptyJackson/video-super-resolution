@@ -5,6 +5,7 @@ import datasets
 import tensorflow as tf
 
 from datasets.div2k import Div2k
+from datasets.vid4 import Vid4
 
 class Dataset:
     def __init__(self,
@@ -15,13 +16,17 @@ class Dataset:
                  batch_size=16,
                  prefetch_buffer_size=4):
         
+        self.name = dataset
+        self.train_dataset = self.val_dataset = self.test_dataset = None
         if dataset == 'div2k':
             self.train_dataset = Div2k(lr_shape, scale, "train", downscale)
             self.val_dataset = Div2k(lr_shape, scale, "valid", downscale)
         elif dataset == 'set5':
             raise NotImplementedError("Set5 support not yet implemented")
+        elif dataset == 'vid4':
+            self.test_dataset = Vid4(lr_shape)
         else:
-            raise ValueError("Dataset must be Div2k or Set5")
+            raise ValueError("Dataset must be in [Div2k, Set5, Vid4]")
         
         self.scale = scale
         self.lr_shape = lr_shape
@@ -32,22 +37,33 @@ class Dataset:
         return math.ceil(self.train_dataset.get_size() / self.batch_size)
 
     def build_dataset(self, mode='train'):
-        if mode=='train':
-            dataset = self.train_dataset
-        elif mode=='valid':
-            dataset = self.val_dataset
-        else:
-            raise ValueError("Dataset mode must be in ['train', 'valid']")
-
+        dataset = self._get_partition(mode)
         tf_dataset = tf.data.Dataset.from_generator(dataset.get_image_pair,
                                                     output_types=(tf.string, tf.string))
-        tf_dataset = tf_dataset.shuffle(dataset.get_size())
+        if mode == 'train':
+            tf_dataset = tf_dataset.shuffle(dataset.get_size())
         tf_dataset = tf_dataset.map(self._load_image)
         tf_dataset = tf_dataset.map(self._preprocess_image)
         tf_dataset = tf_dataset.batch(self.batch_size)
         tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
         #tf_dataset = tf_dataset.cache()
         return tf_dataset
+
+    def _get_partition(self, mode):
+        mode_to_set = {
+            'train': self.train_dataset,
+            'valid': self.val_dataset,
+            'test': self.test_dataset
+        }
+        if mode in mode_to_set:
+            dataset = mode_to_set[mode]
+            if dataset is None:
+                raise ValueError(
+                    self.name + " does not contain a " + mode + " partition")
+            return dataset
+        else:
+            raise ValueError(
+                "Dataset mode must be in " + str(list(mode_to_set.keys())))
 
     def _load_image(self, lr_file, hr_file):
         lr_image = tf.image.decode_png(tf.io.read_file(lr_file), channels=self.lr_shape[2])
@@ -91,3 +107,18 @@ class Dataset:
         scaled_lr_image = tf.image.convert_image_dtype(scaled_lr_image, dtype=tf.float32)
         scaled_hr_image = tf.image.convert_image_dtype(scaled_hr_image, dtype=tf.float32)
         return scaled_lr_image, scaled_hr_image
+
+
+class VideoDataset(Dataset):
+    def build_dataset(self, mode='train'):
+        dataset = self._get_partition(mode)
+        tf_dataset = tf.data.Dataset.from_generator(dataset.get_video_pair,
+                                                    output_types=(tf.string, tf.string))
+        if mode == 'train':
+            tf_dataset = tf_dataset.shuffle(dataset.get_size())
+            #   TODO
+        tf_dataset = tf_dataset.map(self._load_image)
+        tf_dataset = tf_dataset.map(self._preprocess_image)
+        tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
+        #tf_dataset = tf_dataset.cache()
+        return tf_dataset

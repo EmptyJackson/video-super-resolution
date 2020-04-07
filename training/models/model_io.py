@@ -36,13 +36,13 @@ def load_model(ckpt_args):
         lr_shape = get_resolution(ckpt_args.res)
         lr_shape.append(3)
         if ckpt_args.model == 'fsrcnn':
-            model = fsrcnn(
+            model, lr_mul = fsrcnn(
                 in_shape=lr_shape,
                 fsrcnn_args=(32, 5, 1),#(48,12,3),  # (d, s, m) #(32, 5, 1) for -s
                 scale=ckpt_args.scale
             )
         elif ckpt_args.model == 'edsr':
-            model = edsr(
+            model, lr_mul = edsr(
                 in_shape=lr_shape,
                 scale=ckpt_args.scale,
                 num_filters=32, #64
@@ -50,7 +50,7 @@ def load_model(ckpt_args):
             )
         else:
             raise ValueError("Model '" + ckpt_args.model + "' not supported")
-    return model
+    return model, lr_mul
 
 def load_model_from_dir(dir_path, epoch):
     arch_path = os.path.join(dir_path, 'arch.json')

@@ -1,10 +1,11 @@
 import tensorflow as tf
-from tensorflow.python.keras.models import Model
+from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Add, Conv2D, Lambda
 from tensorflow.keras.activations import relu
 
 def edsr(in_shape, scale=2, num_filters=64, num_res_blocks=16):
     x_in = tf.keras.Input(shape=in_shape)
+    #x_in = tf.keras.Input(shape=(None, None, 3))
 
     x = Conv2D(
         filters=num_filters,
@@ -36,7 +37,7 @@ def edsr(in_shape, scale=2, num_filters=64, num_res_blocks=16):
                 name="conv" + str(3 + 2*i)
             )(x)
             x = Add()([x_res, x])
-            x = relu(x)
+            #x = relu(x) NOT IN PAPER
 
     x = Conv2D(
         filters=num_filters,
@@ -83,4 +84,6 @@ def edsr(in_shape, scale=2, num_filters=64, num_res_blocks=16):
         name="up_conv"
     )(x)
     x = relu(x)
-    return Model(x_in, x, name="edsr")
+
+    # Return model and learning rate multiplier
+    return Model(x_in, x, name="edsr"), None

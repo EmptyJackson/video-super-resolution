@@ -3,8 +3,9 @@ import sys
 import argparse
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+from keras_lr_multiplier import LRMultiplier
 
 from utils import get_resolution
 from dataset import Dataset
@@ -16,7 +17,7 @@ def halt_training(model, criterion):
     return true/false
 """
 
-def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq):
+def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq, lr_mul=None):
     tf.print("Building datasets")
     train_dataset = dataset.build_dataset('train')
     val_dataset = dataset.build_dataset('valid')
@@ -25,17 +26,26 @@ def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batch
         save_model_arch(model, ckpt_args)
 
     opt = tf.optimizers.Adam(learn_rate)
+    #if not lr_mul is None:
+    #    opt = LRMultiplier(opt, lr_mul)
+
+    model.compile(optimizer=opt, loss=tf.losses.mean_squared_error)
+
     for epoch in range(1, stopping_criterion['epochs']+1):
+        """
         train_loss = 0.
         progbar = tf.keras.utils.Progbar(train_batches, unit_name='batch')
         for lr_batch, hr_batch in train_dataset:
-            train_loss += train_step(model, opt, tf.losses.mean_squared_error, lr_batch, hr_batch)
+            #train_loss += train_step(model, opt, tf.losses.mean_squared_error, lr_batch, hr_batch)
             progbar.add(1)
+        """
+        history = model.fit(train_dataset, epochs=1, steps_per_epoch=train_batches, verbose=1)
 
         tf.print("Training epoch complete, calculating validation loss...")
-        train_loss /= train_batches
+        #train_loss /= train_batches
         val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)
-        tf.print("Train loss:", train_loss, "   Validation loss: ", val_loss)
+        #tf.print("Train loss:", train_loss, "   Validation loss: ", val_loss)
+        tf.print("Train loss:", history.history['loss'], "   Validation loss: ", val_loss)
 
         if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
             save_model_weights(model, epoch, ckpt_args)
@@ -47,6 +57,9 @@ def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batch
 
 @tf.function
 def train_step(model, opt, loss_fn, lr_batch, hr_batch):
+    """
+    DEPRECATED
+    """
     #lr_batch = tf.cast(lr_batch, tf.float32) / 255.0
     #hr_batch = tf.cast(hr_batch, tf.float32) / 255.0
 
@@ -135,9 +148,9 @@ def main():
         prefetch_buffer_size=4
     )
 
-    model = load_model(ckpt_args)
-    train(model, div2k, stopping_criterion, args.learn_rate,
-          ckpt_args, div2k.get_num_train_batches(), args.rebuild_freq)
+    model, lr_mul = load_model(ckpt_args)
+    train(model, div2k, stopping_criterion, args.learn_rate, ckpt_args,
+          div2k.get_num_train_batches(), args.rebuild_freq, lr_mul)
 
 
 if __name__=='__main__':
