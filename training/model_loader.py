@@ -72,11 +72,17 @@ def load_model_from_dir(dir_path, epoch):
     return _load_existing_model(arch_path, weights_path)
 
 def save_model_arch(model, ckpt_args):
-    model_dir = MODEL_DIR(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+    if ckpt_args.core_args is None:
+        model_dir = MODEL_DIR(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+    else:
+        model_dir = CORE_DIR(ckpt_args.core_args)
     if not os.path.exists(model_dir):
         os.mkdir(model_dir)
 
-    arch_path = MODEL_ARCH_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+    if ckpt_args.core_args is None:
+        arch_path = MODEL_ARCH_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+    else:
+        arch_path = CORE_ARCH_PATH(ckpt_args.core_args)
     config = model.to_json()
     with open(arch_path, 'w') as f:
         json.dump(config, f)

@@ -31,8 +31,8 @@ class Div2k:
     def get_image_pair(self):
         random.shuffle(self.image_ids)
         for image_id in self.image_ids:
-            hr_path = self.hr_dir + image_id + ".png"
-            lr_path = self.lr_dir + image_id + "x" + self.scale + ".png"
+            hr_path = os.path.join(self.hr_dir, image_id + ".png")
+            lr_path = os.path.join(self.lr_dir, image_id + "x" + self.scale + ".png")
             yield lr_path, hr_path
 
     def get_size(self):
