@@ -24,7 +24,11 @@ class Div2k:
             image_id for image_id in self.image_ids if self._is_minimum_size(image_id, lr_shape)]
 
     def _is_minimum_size(self, image_id, lr_shape):
-        im = Image.open(os.path.join(self.lr_dir, image_id + "x" + self.scale + ".png"))
+        path = os.path.join(self.lr_dir, image_id + "x" + self.scale + ".png")
+        if not os.path.exists(path):
+            print("Missing Div2k file:", path)
+            return False
+        im = Image.open(path)
         width, height = im.size
         return height >= lr_shape[0] and width >= lr_shape[1]
 
@@ -33,6 +37,12 @@ class Div2k:
         for image_id in self.image_ids:
             hr_path = os.path.join(self.hr_dir, image_id + ".png")
             lr_path = os.path.join(self.lr_dir, image_id + "x" + self.scale + ".png")
+            if not os.path.exists(hr_path):
+                print("Missing Div2k file: ", hr_path)
+                continue
+            if not os.path.exists(lr_path):
+                print("Missing Div2k file: ", lr_path)
+                continue
             yield lr_path, hr_path
 
     def get_size(self):

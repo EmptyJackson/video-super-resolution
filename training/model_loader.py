@@ -11,7 +11,7 @@ CHECKPOINT_DIR = './checkpoints/'
 MODEL_DIR = lambda model, x, r: CHECKPOINT_DIR + model + '_x' + str(x) + '_' + str(r) + 'p/'
 MODEL_ARCH_PATH = lambda model, x, r: MODEL_DIR(model, x, r) + "arch.json"
 MODEL_CKPT_PATH = lambda model, x, r, i: MODEL_DIR(model, x, r) + str(i) + ".h5"
-CORE_DIR = lambda ca: CHECKPOINT_DIR + 'core_' + "_".join(ca.size, ca.upscale, ca.residual, ca.activation, ca.activation_removal, ca.recurrent) + '/'
+CORE_DIR = lambda ca: CHECKPOINT_DIR + 'core_' + "_".join((ca.size.name, ca.upscale.name, ca.residual.name, ca.activation.name)) + ("_REM" if ca.activation_removal else "") + ("_REC" if ca.recurrent else "") + '/'
 CORE_ARCH_PATH = lambda ca: CORE_DIR(ca) + "arch.json"
 CORE_CKPT_PATH = lambda ca, i: CORE_DIR(ca) + str(i) + ".h5"
 

@@ -121,7 +121,7 @@ class ImageLoader(DataLoader):
             rand > 0.5,
             lambda: (scaled_lr_image, scaled_hr_image),
             lambda: (tf.image.flip_left_right(scaled_lr_image),
-                     tf.image.flip_left_right(scaled_lr_image)))
+                     tf.image.flip_left_right(scaled_hr_image)))
 
 
 class VideoLoader(DataLoader):
