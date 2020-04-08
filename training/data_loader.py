@@ -119,9 +119,9 @@ class ImageLoader(DataLoader):
         # lambda: might be needed before each tuple
         return tf.cond(
             rand > 0.5,
-            (scaled_lr_image, scaled_hr_image),
-            (tf.image.flip_left_right(scaled_lr_image),
-             tf.image.flip_left_right(scaled_lr_image)))
+            lambda: (scaled_lr_image, scaled_hr_image),
+            lambda: (tf.image.flip_left_right(scaled_lr_image),
+                     tf.image.flip_left_right(scaled_lr_image)))
 
 
 class VideoLoader(DataLoader):
