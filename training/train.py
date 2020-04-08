@@ -8,7 +8,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 from keras_lr_multiplier import LRMultiplier
 
 from utils import get_resolution
-from dataset import Dataset
+from data_loader import ImageLoader, VideoLoader
 from models.model_io import load_model, save_model_arch, save_model_weights
 
 """
@@ -17,10 +17,10 @@ def halt_training(model, criterion):
     return true/false
 """
 
-def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq, lr_mul=None):
+def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq, lr_mul=None):
     tf.print("Building datasets")
-    train_dataset = dataset.build_dataset('train')
-    val_dataset = dataset.build_dataset('valid')
+    train_dataset = loader.build_dataset('train')
+    val_dataset = loader.build_dataset('valid')
     
     if ckpt_args.epochs and not ckpt_args.completed:
         save_model_arch(model, ckpt_args)
@@ -53,7 +53,7 @@ def train(model, dataset, stopping_criterion, learn_rate, ckpt_args, train_batch
 
         if (epoch % rebuild_freq) == 0:
             tf.print("Rebuilding train dataset")
-            train_dataset = dataset.build_dataset('train')
+            train_dataset = loader.build_dataset('train')
 
 @tf.function
 def train_step(model, opt, loss_fn, lr_batch, hr_batch):
@@ -139,11 +139,10 @@ def main():
         'epochs': args.epochs
     }
 
-    div2k = Dataset(
+    div2k = ImageLoader(
         'div2k',
         lr_shape=lr_shape,
         scale=args.scale,
-        downscale='bicubic',
         batch_size=batch_size,
         prefetch_buffer_size=4
     )
