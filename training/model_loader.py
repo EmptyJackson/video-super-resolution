@@ -4,12 +4,16 @@ import tensorflow as tf
 
 from models.fsrcnn import fsrcnn
 from models.edsr import edsr
+from models.core import core_model, CoreArgs
 from utils import get_resolution
 
 CHECKPOINT_DIR = './checkpoints/'
 MODEL_DIR = lambda model, x, r: CHECKPOINT_DIR + model + '_x' + str(x) + '_' + str(r) + 'p/'
 MODEL_ARCH_PATH = lambda model, x, r: MODEL_DIR(model, x, r) + "arch.json"
 MODEL_CKPT_PATH = lambda model, x, r, i: MODEL_DIR(model, x, r) + str(i) + ".h5"
+CORE_DIR = lambda ca: CHECKPOINT_DIR + 'core_' + "_".join(ca.size, ca.upscale, ca.residual, ca.activation, ca.activation_removal, ca.recurrent) + '/'
+CORE_ARCH_PATH = lambda ca: CORE_DIR(ca) + "arch.json"
+CORE_CKPT_PATH = lambda ca, i: CORE_DIR(ca) + str(i) + ".h5"
 
 def _load_existing_model(arch_path, weights_path):
     if not os.path.exists(arch_path):
@@ -28,8 +32,12 @@ def _load_existing_model(arch_path, weights_path):
 
 def load_model(ckpt_args):
     if ckpt_args.completed:
-        arch_path = MODEL_ARCH_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
-        weights_path = MODEL_CKPT_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, ckpt_args.completed)
+        if ckpt_args.core_args is None:
+            arch_path = MODEL_ARCH_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+            weights_path = MODEL_CKPT_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, ckpt_args.completed)
+        else:
+            arch_path = CORE_ARCH_PATH(ckpt_args.core_args)
+            weights_path = CORE_CKPT_PATH(ckpt_args.core_args, ckpt_args.completed)
         model = _load_existing_model(arch_path, weights_path)
     else:
         print("Initializing new model")
@@ -47,6 +55,12 @@ def load_model(ckpt_args):
                 scale=ckpt_args.scale,
                 num_filters=32, #64
                 num_res_blocks=4 #8
+            )
+        elif ckpt_args.model == 'core':
+            if ckpt_args.core_args is None:
+                raise ValueError("Must supply core_args to core model")
+            model, lr_mul = core(
+                ckpt_args.core_args
             )
         else:
             raise ValueError("Model '" + ckpt_args.model + "' not supported")
@@ -69,6 +83,9 @@ def save_model_arch(model, ckpt_args):
     print("Model arch saved to " + arch_path)
 
 def save_model_weights(model, epoch, ckpt_args):
-    weights_path = MODEL_CKPT_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, epoch+ckpt_args.completed)
+    if ckpt_args.core_args is None:
+        weights_path = MODEL_CKPT_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res, epoch+ckpt_args.completed)
+    else:
+        weights_path = CORE_CKPT_PATH(ckpt_args.core_args, epoch+ckpt_args.completed)
     model.save_weights(weights_path)
     print("Model weights saved to " + weights_path)

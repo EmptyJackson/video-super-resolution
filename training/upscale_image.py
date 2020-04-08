@@ -4,7 +4,7 @@ import tensorflow as tf
 from PIL import Image
 
 from utils import load_image, save_image_from_tensor
-from models.model_io import load_model_from_dir
+from models.model_loader import load_model_from_dir
 
 @tf.function
 def get_prediction(model, lr_image):

@@ -9,7 +9,8 @@ from keras_lr_multiplier import LRMultiplier
 
 from utils import get_resolution
 from data_loader import ImageLoader, VideoLoader
-from models.model_io import load_model, save_model_arch, save_model_weights
+from model_loader import load_model, save_model_arch, save_model_weights
+from models.core import CoreArgs
 
 """
 def halt_training(model, criterion):
@@ -98,7 +99,7 @@ class CheckpointArgs:
     Stores training checkpoint information.
     Set epochs = 0 to disable checkpointing.
     """
-    def __init__(self, epochs, completed=0, model="", scale=2, res=240):
+    def __init__(self, epochs, completed=0, model="", scale=2, res=240, core_args=None):
         if epochs < 0:
             raise ValueError('Epoch checkpoint frequency must be non-negative.')
         self.epochs = epochs
@@ -106,6 +107,8 @@ class CheckpointArgs:
         self.model = model
         self.scale = scale
         self.res = res
+        self.core_args = core_args
+
 
 def main():
     parser=argparse.ArgumentParser(
@@ -120,6 +123,12 @@ def main():
     parser.add_argument('--epochs', default=100, type=int, help="training epochs")
     parser.add_argument('--pre_epochs', default=0, type=int,  help="restores model weights from checkpoint with given epochs of pretraining; set to 0 to train from scratch")
     parser.add_argument('--ckpt_epochs', default=0, type=int, help="number of training epochs in between checkpoints; set to 0 to not save checkpoints")
+    parser.add_argument('--size', default='s', type=str, choices=['s', 'm', 'l'], help="size of core model")
+    parser.add_argument('--upscale', default='sp', type=str, choices=['de', 'sp'], help="upscale method of core model")
+    parser.add_argument('--residual', default='n', type=str, choices=['n', 'l', 'g'], help="residual method of core model")
+    parser.add_argument('--activation', default='r', type=str, choices=['r', 'p'], help="activation of core model")
+    parser.add_argument('--activation_removal', action='store_true', help="activation removal in core model")
+    parser.add_argument('--recurrent', action='store_true', help="recurrent core model")
 
     args = parser.parse_args()
 
@@ -127,12 +136,17 @@ def main():
     lr_shape.append(3) # Colour channels
     batch_size = 16
 
+    core_args = None
+    if args.model == 'core':
+        core_args = CoreArgs(args.scale, args.size, args.upscale, args.residual, args.activation, args.activation_removal, args.recurrent)
+
     ckpt_args = CheckpointArgs(
         epochs=args.ckpt_epochs,
         completed=args.pre_epochs,
         model=args.model,
         scale=args.scale,
-        res=args.resolution
+        res=args.resolution,
+        core_args=core_args
     )
 
     stopping_criterion = {

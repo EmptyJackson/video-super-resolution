@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Add, Concatenate, Conv2D, Conv2dTranspose, ConvLSTM2D, Lambda, PReLU, ReLU
+from tensorflow.keras.layers import Add, Concatenate, Conv2D, Conv2DTranspose, ConvLSTM2D, Lambda, PReLU, ReLU
 
 from enum import Enum
 
@@ -22,23 +22,28 @@ class Activation(Enum):
     RELU = 1
     PRELU = 2
 
+class CoreArgs:
+    def __init__(self, scale, size, upscale, residual, activation, activation_removal, recurrent):
+        self.scale = scale
+        size_dict = {'s':Size.SMALL, 'm':Size.MED, 'l':Size.LARGE}
+        upscale_dict = {'de':Upscale.DECONV, 'sp':Upscale.SUB_PIXEL}
+        residual_dict = {'n':Residual.NONE, 'l':Residual.LOCAL, 'g':Residual.GLOBAL}
+        activation_dict = {'r':Activation.RELU, 'p':Activation.PRELU}
+        self.size = size_dict[size]
+        self.upscale = upscale_dict[upscale]
+        self.residual = residual_dict[residual]
+        self.activation = activation_dict[activation]
+        self.activation_removal = activation_removal
+        self.recurrent = recurrent
 
-def core_model(
-    scale,
-    size,
-    upscale=Upscale.SUB_PIXEL,
-    residual=Residual.NONE,
-    activation=Activation.RELU,
-    activation_removal=False,
-    recurrent=False):
-
-    if not scale in [2, 4]:
+def core_model(args):
+    if not args.scale in [2, 4]:
         raise ValueError('Scale must be in [2, 4]')
 
-    if size == Size.LARGE:
+    if args.size == Size.LARGE:
         depth = 16
         num_filters = 64
-    elif size == Size.MED:
+    elif args.size == Size.MED:
         depth = 8
         num_filters = 32
     else:
@@ -46,7 +51,7 @@ def core_model(
         num_filters = 16
 
     #x_in = tf.keras.Input(shape=in_shape)
-    if not recurrent:
+    if not args.recurrent:
         # single-image
         x_in = tf.keras.Input(shape=(None, None, 3))
         x = Conv2D(
@@ -72,7 +77,7 @@ def core_model(
 
     x_res = x
     for i in range(depth):
-        if residual == Residual.LOCAL:
+        if args.residual == Residual.LOCAL:
             x_res = x
         x = Conv2D(
             filters=num_filters,
@@ -82,9 +87,9 @@ def core_model(
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
             name="conv" + str(2 + 2*i)
         )(x)
-        if activation == Activation.PRELU:
+        if args.activation == Activation.PRELU:
             x = PReLU()(x)
-        elif activation == Activation.RELU:
+        elif args.activation == Activation.RELU:
             x = ReLU()(x)
         x = Conv2D(
             filters=num_filters,
@@ -94,18 +99,18 @@ def core_model(
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
             name="conv" + str(3 + 2*i)
         )(x)
-        if not activation_removal:
-            if activation == Activation.PRELU:
+        if not args.activation_removal:
+            if args.activation == Activation.PRELU:
                 x = PReLU()(x)
-            elif activation == Activation.RELU:
+            elif args.activation == Activation.RELU:
                 x = ReLU()(x)
-        if residual == Residual.GLOBAL:
+        if args.residual == Residual.GLOBAL:
             x_res = Concatenate([x_res, x])
             x = x_res
-        if residual == Residual.LOCAL:
+        if args.residual == Residual.LOCAL:
             x = Add()([x_res, x])
     
-    if not recurrent:
+    if not args.recurrent:
         x = Conv2D(
             filters=num_filters,
             kernel_size=3,
@@ -125,7 +130,7 @@ def core_model(
             name="final_lstm_conv"
         )(x)
 
-    if upscale == Upscale.SUB_PIXEL:
+    if args.upscale == Upscale.SUB_PIXEL:
         # Sub-pixel convolution
         up_factor = 2
         subpixel_layer = Lambda(lambda x: tf.nn.depth_to_space(x, up_factor))
@@ -138,7 +143,7 @@ def core_model(
             name="subpix_conv"
         )(x)
         x = subpixel_layer(inputs=x)
-        if scale == 4:
+        if args.scale == 4:
             # Second sub-pixel convolution for x4 upscaling
             x = Conv2D(
                 filters=3*(up_factor**2),
@@ -149,12 +154,12 @@ def core_model(
                 name="subpix_conv2"
             )(x)
             x = subpixel_layer(inputs=x)
-    elif upscale == Upscale.DECONV:
+    elif args.upscale == Upscale.DECONV:
         # Deconvolution
         x = Conv2DTranspose(
             filters=3,
             kernel_size=9,
-            strides=scale,
+            strides=args.scale,
             padding="same",
             name="transpose_conv"
         )(x)
