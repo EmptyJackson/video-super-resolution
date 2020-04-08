@@ -57,7 +57,7 @@ class ImageLoader(DataLoader):
         else:
             raise ValueError("Video dataset must be in [div2k, set5]")
         self.lr_shape = lr_shape
-        DataLoader.__init__(self, dataset, lr_shape, scale, batch_size, prefetch_buffer_size)
+        DataLoader.__init__(self, dataset, scale, batch_size, prefetch_buffer_size)
 
     def build_dataset(self, mode='train'):
         dataset = self._get_partition(mode)
@@ -119,19 +119,18 @@ class ImageLoader(DataLoader):
 class VideoLoader(DataLoader):
     def __init__(self,
                  dataset="vimeo90k",
-                 lr_shape=[480,640,3],
                  scale=2,
                  batch_size=16,
                  prefetch_buffer_size=4):
         
         if dataset == 'vimeo90k':
-            self.train_dataset = Vimeo90k(lr_shape, scale, "train")
-            self.val_dataset = Vimeo90k(lr_shape, scale, "valid")
+            self.train_dataset = Vimeo90k(scale, "train")
+            self.val_dataset = Vimeo90k(scale, "valid")
         elif dataset == 'vid4':
-            self.test_dataset = Vid4(lr_shape)
+            self.test_dataset = Vid4()
         else:
             raise ValueError("Video dataset must be in [vimeo90k, vid4]")
-        DataLoader.__init__(self, dataset, lr_shape, scale, batch_size, prefetch_buffer_size)
+        DataLoader.__init__(self, dataset, scale, batch_size, prefetch_buffer_size)
 
     def build_dataset(self, mode='train'):
         dataset = self._get_partition(mode)
