@@ -59,7 +59,7 @@ def load_model(ckpt_args):
         elif ckpt_args.model == 'core':
             if ckpt_args.core_args is None:
                 raise ValueError("Must supply core_args to core model")
-            model, lr_mul = core(
+            model, lr_mul = core_model(
                 ckpt_args.core_args
             )
         else:
