@@ -114,7 +114,14 @@ class ImageLoader(DataLoader):
         #scaled_hr_image = tf.cast(scaled_hr_image, tf.float32) / 255.0
         scaled_lr_image = tf.image.convert_image_dtype(scaled_lr_image, dtype=tf.float32)
         scaled_hr_image = tf.image.convert_image_dtype(scaled_hr_image, dtype=tf.float32)
-        return scaled_lr_image, scaled_hr_image
+
+        rand = tf.random.uniform(shape=(), maxval=1)
+        # lambda: might be needed before each tuple
+        return tf.cond(
+            rand > 0.5,
+            (scaled_lr_image, scaled_hr_image),
+            (tf.image.flip_left_right(scaled_lr_image),
+             tf.image.flip_left_right(scaled_lr_image)))
 
 
 class VideoLoader(DataLoader):
@@ -143,7 +150,7 @@ class VideoLoader(DataLoader):
                                                     output_shapes=(tf.TensorShape([None]), tf.TensorShape([None])))
         tf_dataset = tf_dataset.map(self._load_video)
         #tf_dataset = tf_dataset.map(self._preprocess_image)
-        #tf_dataset = tf_dataset.batch(self.batch_size)
+        tf_dataset = tf_dataset.batch(self.batch_size)
         #tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
         #tf_dataset = tf_dataset.cache()
         return tf_dataset

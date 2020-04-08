@@ -32,6 +32,9 @@ def core_model(
     activation_removal=False,
     recurrent=False):
 
+    if not scale in [2, 4]:
+        raise ValueError('Scale must be in [2, 4]')
+
     if size == Size.LARGE:
         depth = 16
         num_filters = 64
@@ -63,6 +66,7 @@ def core_model(
             strides=1,
             padding="same",
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+            return_sequences=True,
             name="start_lstm_conv"
         )(x)
 
@@ -117,11 +121,9 @@ def core_model(
             strides=1,
             padding="same",
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+            return_sequences=True,
             name="final_lstm_conv"
         )(x)
-
-    if not scale in [2, 4]:
-        raise ValueError('Scale must be in [2, 4]')
 
     if upscale == Upscale.SUB_PIXEL:
         # Sub-pixel convolution
