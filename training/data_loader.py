@@ -7,6 +7,7 @@ import tensorflow as tf
 from datasets.div2k import Div2k
 from datasets.vid4 import Vid4
 from datasets.vimeo90k import Vimeo90k
+from datasets.reds import Reds
 
 class DataLoader:
     def __init__(self,
@@ -118,8 +119,8 @@ class ImageLoader(DataLoader):
 
 class VideoLoader(DataLoader):
     def __init__(self,
-                 dataset="vimeo90k",
-                 scale=2,
+                 dataset="reds",
+                 scale=4,
                  batch_size=16,
                  prefetch_buffer_size=4):
         
@@ -128,8 +129,11 @@ class VideoLoader(DataLoader):
             self.val_dataset = Vimeo90k(scale, "valid")
         elif dataset == 'vid4':
             self.test_dataset = Vid4()
+        elif dataset == 'reds':
+            self.train_dataset = Reds(scale, "train")
+            self.val_dataset = Reds(scale, "val")
         else:
-            raise ValueError("Video dataset must be in [vimeo90k, vid4]")
+            raise ValueError("Video dataset must be in [vimeo90k, vid4, reds]")
         DataLoader.__init__(self, dataset, scale, batch_size, prefetch_buffer_size)
 
     def build_dataset(self, mode='train'):
