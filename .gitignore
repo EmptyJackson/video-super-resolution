@@ -1,5 +1,7 @@
 data/div2k
 data/set5
+data/reds
+data/vimeo-90k-t
 
 venv
 .vscode
