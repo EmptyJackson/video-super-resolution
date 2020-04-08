@@ -50,6 +50,7 @@ class ImageLoader(DataLoader):
                  batch_size=16,
                  prefetch_buffer_size=4):
         
+        super(ImageLoader, self).__init__(dataset, scale, batch_size, prefetch_buffer_size)
         if dataset == 'div2k':
             self.train_dataset = Div2k(lr_shape, scale, "train")
             self.val_dataset = Div2k(lr_shape, scale, "valid")
@@ -58,7 +59,6 @@ class ImageLoader(DataLoader):
         else:
             raise ValueError("Video dataset must be in [div2k, set5]")
         self.lr_shape = lr_shape
-        super(ImageLoader, self).__init__(dataset, scale, batch_size, prefetch_buffer_size)
 
     def build_dataset(self, mode='train'):
         dataset = self._get_partition(mode)

@@ -153,17 +153,20 @@ def main():
         'epochs': args.epochs
     }
 
-    div2k = ImageLoader(
-        'div2k',
-        lr_shape=lr_shape,
-        scale=args.scale,
-        batch_size=batch_size,
-        prefetch_buffer_size=4
-    )
+    if args.model == 'core' and args.recurrent:
+        raise NotImplementedError("Video loader not yet implemented")
+    else:
+        loader = ImageLoader(
+            'div2k',
+            lr_shape=lr_shape,
+            scale=args.scale,
+            batch_size=batch_size,
+            prefetch_buffer_size=4
+        )
 
     model, lr_mul = load_model(ckpt_args)
-    train(model, div2k, stopping_criterion, args.learn_rate, ckpt_args,
-          div2k.get_num_train_batches(), args.rebuild_freq, lr_mul)
+    train(model, loader, stopping_criterion, args.learn_rate, ckpt_args,
+          loader.get_num_train_batches(), args.rebuild_freq, lr_mul)
 
 
 if __name__=='__main__':
