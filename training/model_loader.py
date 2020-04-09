@@ -10,9 +10,11 @@ from utils import get_resolution
 CHECKPOINT_DIR = './checkpoints/'
 MODEL_DIR = lambda model, x, r: CHECKPOINT_DIR + model + '_x' + str(x) + '_' + str(r) + 'p/'
 MODEL_ARCH_PATH = lambda model, x, r: MODEL_DIR(model, x, r) + "arch.json"
+MODEL_ARCH_INFER_PATH = lambda model, x, r: MODEL_DIR(model, x, r) + "arch_infer.json"
 MODEL_CKPT_PATH = lambda model, x, r, i: MODEL_DIR(model, x, r) + str(i) + ".h5"
 CORE_DIR = lambda ca: CHECKPOINT_DIR + 'core_' + "_".join((ca.size.name, ca.upscale.name, ca.residual.name, ca.activation.name)) + ("_REM" if ca.activation_removal else "") + ("_REC" if ca.recurrent else "") + '/'
 CORE_ARCH_PATH = lambda ca: CORE_DIR(ca) + "arch.json"
+CORE_ARCH_INFER_PATH = lambda ca: CORE_DIR(ca) + "arch_infer.json"
 CORE_CKPT_PATH = lambda ca, i: CORE_DIR(ca) + str(i) + ".h5"
 
 def _load_existing_model(arch_path, weights_path):
@@ -83,12 +85,20 @@ def save_model_arch(model, ckpt_args):
 
     if ckpt_args.core_args is None:
         arch_path = MODEL_ARCH_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
+        arch_infer_path = MODEL_ARCH_INFER_PATH(ckpt_args.model, ckpt_args.scale, ckpt_args.res)
     else:
         arch_path = CORE_ARCH_PATH(ckpt_args.core_args)
+        arch_infer_path = CORE_ARCH_INFER_PATH(ckpt_args.core_args)
     config = model.to_json()
+    # Make LSTM stateful for inference
+    config_infer = config.replace('\\"stateful\\": false', '\\"stateful\\": true')
+
     with open(arch_path, 'w') as f:
         json.dump(config, f)
+    with open(arch_infer_path, 'w') as f:
+        json.dump(config_infer, f)
     print("Model arch saved to " + arch_path)
+    print("Inference model arch saved to " + arch_infer_path)
 
 def save_model_weights(model, epoch, ckpt_args):
     if ckpt_args.core_args is None:

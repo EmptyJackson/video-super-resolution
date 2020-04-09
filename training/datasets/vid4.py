@@ -6,7 +6,7 @@ VID4_DIR = "data/vid4/"
 LR_DIR = os.path.join(VID4_DIR, "Blx4")
 HR_DIR = os.path.join(VID4_DIR, "GT")
 
-class Reds:
+class Vid4:
     def __init__(self, scale=4, subset="test"):
         if not subset in ['test']:
             raise ValueError('Vid4 subset must be in test')

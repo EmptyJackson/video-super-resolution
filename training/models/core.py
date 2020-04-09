@@ -51,10 +51,9 @@ def core_model(args):
         depth = 1
         num_filters = 8
 
-    #x_in = tf.keras.Input(shape=in_shape)
+    x_in = tf.keras.Input(shape=(None, None, 3))
     if not args.recurrent:
         # single-image
-        x_in = tf.keras.Input(shape=(None, None, 3))
         x = Conv2D(
             filters=num_filters,
             kernel_size=3,
@@ -65,7 +64,6 @@ def core_model(args):
         )(x_in)
     else:
         # video-based
-        x_in = tf.keras.Input(shape=(None, None, 3))
         x = K.expand_dims(x_in, 0)
         x = ConvLSTM2D(
             filters=num_filters,
@@ -91,7 +89,7 @@ def core_model(args):
             name="conv" + str(2 + 2*i)
         )(x)
         if args.activation == Activation.PRELU:
-            x = PReLU()(x)
+            x = PReLU(shared_axes=[1,2])(x)
         elif args.activation == Activation.RELU:
             x = ReLU()(x)
         x = Conv2D(
@@ -104,7 +102,7 @@ def core_model(args):
         )(x)
         if not args.activation_removal:
             if args.activation == Activation.PRELU:
-                x = PReLU()(x)
+                x = PReLU(shared_axes=[1,2])(x)
             elif args.activation == Activation.RELU:
                 x = ReLU()(x)
         if args.residual == Residual.GLOBAL:
