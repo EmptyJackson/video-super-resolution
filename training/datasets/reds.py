@@ -40,5 +40,5 @@ class Reds:
         """
         Returns number of clips (total_frames/clip_length)
         """
-        vids = len(os.listdir(self.lr_dir))
+        vids = len([f for f in os.listdir(self.lr_dir) if f[0] != '.'])
         return vids * (self.vid_length / self.seq_length)
