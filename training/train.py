@@ -122,6 +122,7 @@ def main():
     parser.add_argument('--scale', default=2, type=int, help="factor by which to upscale the given model")
     parser.add_argument('--resolution', default=240, type=int, help="height of low resolution image")
     parser.add_argument('--learn_rate', default=1e-3, type=float, help="initial learning rate of optimizer")
+    parser.add_argument('--batch_size', default=16, type=int, help="training batch size")
     parser.add_argument('--rebuild_freq', default=20, type=int, help="frequency to rebuild dataset (epochs)")
     parser.add_argument('--epochs', default=100, type=int, help="training epochs")
     parser.add_argument('--pre_epochs', default=0, type=int,  help="restores model weights from checkpoint with given epochs of pretraining; set to 0 to train from scratch")
@@ -161,12 +162,11 @@ def main():
     else:
         lr_shape = get_resolution(args.resolution)
         lr_shape.append(3) # Colour channels
-        batch_size = 16
         loader = ImageLoader(
             'div2k',
             lr_shape=lr_shape,
             scale=args.scale,
-            batch_size=batch_size,
+            batch_size=args.batch_size,
             prefetch_buffer_size=4
         )
 
