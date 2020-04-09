@@ -28,7 +28,11 @@ def _load_existing_model(arch_path, weights_path):
         model = tf.keras.models.model_from_json(json_str)
     print("Restoring model weights from " + weights_path)
     model.load_weights(weights_path)
-    return model
+
+    lr_mul = None
+    if arch_path.split('/')[-2][-3:] == "REC":
+        lr_mul = {'transpose_conv': 0.1}
+    return model, lr_mul
 
 def load_model(ckpt_args):
     if ckpt_args.completed:
@@ -38,7 +42,7 @@ def load_model(ckpt_args):
         else:
             arch_path = CORE_ARCH_PATH(ckpt_args.core_args)
             weights_path = CORE_CKPT_PATH(ckpt_args.core_args, ckpt_args.completed)
-        model = _load_existing_model(arch_path, weights_path)
+        model, lr_mul = _load_existing_model(arch_path, weights_path)
     else:
         print("Initializing new model")
         lr_shape = get_resolution(ckpt_args.res)

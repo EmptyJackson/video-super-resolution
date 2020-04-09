@@ -31,7 +31,7 @@ def main():
         lr_image = load_image(image_path_in)
         model_dir = sys.argv[4]
         epoch = sys.argv[5]
-        model = load_model_from_dir(model_dir, epoch)
+        model, lr_mul = load_model_from_dir(model_dir, epoch)
         hr_image = get_prediction(model, lr_image)
         save_image_from_tensor(hr_image, image_path_out)
     else:
