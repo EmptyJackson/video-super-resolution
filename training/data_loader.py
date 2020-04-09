@@ -33,9 +33,6 @@ class DataLoader:
         }
         if mode in mode_to_set:
             dataset = mode_to_set[mode]
-            if dataset is None:
-                raise ValueError(
-                    self.name + " does not contain a " + mode + " partition")
             return dataset
         else:
             raise ValueError(
@@ -62,6 +59,8 @@ class ImageLoader(DataLoader):
 
     def build_dataset(self, mode='train'):
         dataset = self._get_partition(mode)
+        if dataset is None:
+            return None
         tf_dataset = tf.data.Dataset.from_generator(dataset.get_image_pair,
                                                     output_types=(tf.string, tf.string))
         if mode == 'train':
@@ -128,42 +127,35 @@ class VideoLoader(DataLoader):
     def __init__(self,
                  dataset="reds",
                  scale=4,
-                 batch_size=16,
                  prefetch_buffer_size=4):
         
+        super(VideoLoader, self).__init__(dataset, scale, 1, prefetch_buffer_size)
         if dataset == 'vimeo90k':
             self.train_dataset = Vimeo90k(scale, "train")
             self.val_dataset = Vimeo90k(scale, "valid")
         elif dataset == 'vid4':
             self.test_dataset = Vid4()
         elif dataset == 'reds':
-            self.train_dataset = Reds(scale, "train")
-            self.val_dataset = Reds(scale, "val")
+            #self.train_dataset = Reds(scale, "train")
+            #self.val_dataset = Reds(scale, "val")
+            self.train_dataset = Reds(scale, "val")
         else:
             raise ValueError("Video dataset must be in [vimeo90k, vid4, reds]")
-        super(VideoLoader, self).__init__(dataset, scale, batch_size, prefetch_buffer_size)
 
     def build_dataset(self, mode='train'):
         dataset = self._get_partition(mode)
-        tf_dataset = tf.data.Dataset.from_generator(dataset.get_video,
-                                                    output_types=(tf.string, tf.string),
-                                                    output_shapes=(tf.TensorShape([None]), tf.TensorShape([None])))
-        tf_dataset = tf_dataset.map(self._load_video)
+        if dataset is None:
+            return None
+        tf_dataset = tf.data.Dataset.from_generator(dataset.get_frame_pair,
+                                                    output_types=(tf.string, tf.string))
+        tf_dataset = tf_dataset.map(self._load_frame)
         #tf_dataset = tf_dataset.map(self._preprocess_image)
-        tf_dataset = tf_dataset.batch(self.batch_size)
-        #tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
+        tf_dataset = tf_dataset.batch(dataset.seq_length)
+        tf_dataset = tf_dataset.prefetch(self.prefetch_buffer_size)
         #tf_dataset = tf_dataset.cache()
         return tf_dataset
 
-    def _load_video(self, lr_paths, hr_paths):
-        lr_vid = []
-        hr_vid = []
-        for lr_path, hr_path in zip(lr_paths, hr_paths):
-            lr_vid.append(tf.image.decode_png(tf.io.read_file(lr_path), channels=3))
-            hr_vid.append(tf.image.decode_png(tf.io.read_file(hr_path), channels=3))
-        return tf.stack(lr_vid), tf.stack(hr_vid)
-
-
-
-class Dataset:
-    pass #TBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBC
+    def _load_frame(self, lr_path, hr_path):
+        lr_frame = tf.image.decode_png(tf.io.read_file(lr_path), channels=3)
+        hr_frame = tf.image.decode_png(tf.io.read_file(hr_path), channels=3)
+        return lr_frame, hr_frame

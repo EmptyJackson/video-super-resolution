@@ -21,6 +21,8 @@ def halt_training(model, criterion):
 def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batches, rebuild_freq, lr_mul=None):
     tf.print("Building datasets")
     train_dataset = loader.build_dataset('train')
+    if train_dataset is None:
+        raise ValueError("Training dataset missing")
     val_dataset = loader.build_dataset('valid')
     
     if ckpt_args.epochs and not ckpt_args.completed:
@@ -43,10 +45,11 @@ def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batche
         history = model.fit(train_dataset, epochs=1, steps_per_epoch=train_batches, verbose=1)
 
         tf.print("Training epoch complete, calculating validation loss...")
-        #train_loss /= train_batches
-        val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)
-        #tf.print("Train loss:", train_loss, "   Validation loss: ", val_loss)
-        tf.print("Train loss:", history.history['loss'], "   Validation loss: ", val_loss)
+        if val_dataset is None:
+            tf.print("Train loss:", history.history['loss'][0])
+        else:
+            val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)
+            tf.print("Train loss:", history.history['loss'][0], "   Validation loss: ", val_loss)
 
         if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
             save_model_weights(model, epoch, ckpt_args)
@@ -132,10 +135,6 @@ def main():
 
     args = parser.parse_args()
 
-    lr_shape = get_resolution(args.resolution)
-    lr_shape.append(3) # Colour channels
-    batch_size = 16
-
     core_args = None
     if args.model == 'core':
         core_args = CoreArgs(args.scale, args.size, args.upscale, args.residual, args.activation, args.activation_removal, args.recurrent)
@@ -154,8 +153,15 @@ def main():
     }
 
     if args.model == 'core' and args.recurrent:
-        raise NotImplementedError("Video loader not yet implemented")
+        loader = VideoLoader(
+            'reds',
+            scale=args.scale,
+            prefetch_buffer_size=4
+        )
     else:
+        lr_shape = get_resolution(args.resolution)
+        lr_shape.append(3) # Colour channels
+        batch_size = 16
         loader = ImageLoader(
             'div2k',
             lr_shape=lr_shape,

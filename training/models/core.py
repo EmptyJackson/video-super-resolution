@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Add, Concatenate, Conv2D, Conv2DTranspose, ConvLSTM2D, Lambda, PReLU, ReLU
+import tensorflow.keras.backend as K
 
 from enum import Enum
 
@@ -64,7 +65,8 @@ def core_model(args):
         )(x_in)
     else:
         # video-based
-        x_in = tf.keras.Input(shape=(None, None, None, 3))
+        x_in = tf.keras.Input(shape=(None, None, 3))
+        x = K.expand_dims(x_in, 0)
         x = ConvLSTM2D(
             filters=num_filters,
             kernel_size=3,
@@ -74,6 +76,7 @@ def core_model(args):
             return_sequences=True,
             name="start_lstm_conv"
         )(x)
+        x = K.squeeze(x, 0)
 
     x_res = x
     for i in range(depth):
@@ -120,6 +123,7 @@ def core_model(args):
             name="final_conv"
         )(x)
     else:
+        x = K.expand_dims(x, 0)
         x = ConvLSTM2D(
             filters=num_filters,
             kernel_size=3,
@@ -129,6 +133,7 @@ def core_model(args):
             return_sequences=True,
             name="final_lstm_conv"
         )(x)
+        x = K.squeeze(x, 0)
 
     if args.upscale == Upscale.SUB_PIXEL:
         # Sub-pixel convolution
