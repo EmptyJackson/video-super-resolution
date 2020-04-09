@@ -44,10 +44,10 @@ def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batche
         """
         history = model.fit(train_dataset, epochs=1, steps_per_epoch=train_batches, verbose=1)
 
-        tf.print("Training epoch complete, calculating validation loss...")
         if val_dataset is None:
             tf.print("Train loss:", history.history['loss'][0])
         else:
+            tf.print("Training epoch complete, calculating validation loss...")
             val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)
             tf.print("Train loss:", history.history['loss'][0], "   Validation loss: ", val_loss)
 

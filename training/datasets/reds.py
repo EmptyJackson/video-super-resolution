@@ -19,7 +19,7 @@ class Reds:
         self.lr_dir = LR_DIR(subset)
         # Must be evenly divisible
         self.vid_length = 100
-        self.seq_length = 10
+        self._seq_length = 10
 
     def get_frame_pair(self):
         for sequence in os.listdir(self.lr_dir):
@@ -41,4 +41,8 @@ class Reds:
         Returns number of clips (total_frames/clip_length)
         """
         vids = len([f for f in os.listdir(self.lr_dir) if f[0] != '.'])
-        return vids * (self.vid_length / self.seq_length)
+        return vids * (self.vid_length / self._seq_length)
+
+    @property
+    def seq_length(self):
+        return self._seq_length

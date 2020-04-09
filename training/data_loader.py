@@ -134,7 +134,7 @@ class VideoLoader(DataLoader):
             self.train_dataset = Vimeo90k(scale, "train")
             self.val_dataset = Vimeo90k(scale, "valid")
         elif dataset == 'vid4':
-            self.test_dataset = Vid4()
+            self.test_dataset = Vid4(scale, 'test')
         elif dataset == 'reds':
             #self.train_dataset = Reds(scale, "train")
             #self.val_dataset = Reds(scale, "val")
