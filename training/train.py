@@ -2,8 +2,8 @@ import os
 import sys
 import argparse
 import numpy as np
-import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import tensorflow as tf
 
 from keras_lr_multiplier import LRMultiplier
 
