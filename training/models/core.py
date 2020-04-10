@@ -106,7 +106,7 @@ def core_model(args):
             elif args.activation == Activation.RELU:
                 x = ReLU()(x)
         if args.residual == Residual.GLOBAL:
-            x_res = Concatenate([x_res, x])
+            x_res = Concatenate()([x_res, x])
             x = x_res
         if args.residual == Residual.LOCAL:
             x = Add()([x_res, x])
