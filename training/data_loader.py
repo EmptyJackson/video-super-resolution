@@ -158,4 +158,6 @@ class VideoLoader(DataLoader):
     def _load_frame(self, lr_path, hr_path):
         lr_frame = tf.image.decode_png(tf.io.read_file(lr_path), channels=3)
         hr_frame = tf.image.decode_png(tf.io.read_file(hr_path), channels=3)
+        lr_frame = tf.image.convert_image_dtype(lr_frame, dtype=tf.float32)
+        hr_frame = tf.image.convert_image_dtype(hr_frame, dtype=tf.float32)
         return lr_frame, hr_frame

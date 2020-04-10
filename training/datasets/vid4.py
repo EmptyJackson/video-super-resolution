@@ -3,7 +3,7 @@ import random
 from PIL import Image
 
 VID4_DIR = "data/vid4/"
-LR_DIR = os.path.join(VID4_DIR, "Blx4")
+LR_DIR = os.path.join(VID4_DIR, "BIx4")
 HR_DIR = os.path.join(VID4_DIR, "GT")
 
 class Vid4:
