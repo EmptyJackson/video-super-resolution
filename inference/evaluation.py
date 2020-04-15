@@ -9,7 +9,7 @@ from upsampler import Upsampler, ModelArgs
 VID4_DIR = "data/vid4"
 VID4_LENGTH = 167
 SAMPLE_ARGS = ModelArgs(
-        epoch=9,
+        epoch=13,
         scale=4,
         size='s',
         upscale='sp',
@@ -42,15 +42,16 @@ def evaluate_model(args, metrics=['psnr', 'ssim', 'fps']):
     """
     Evaluate model on Vid4.
     """
-    warm_runs = 1
-    perf_runs = 3
+    warm_runs = 0
+    perf_runs = 1
     upsampler = Upsampler(args)
-    print("Warming up for evaluation")
-    for i in range(warm_runs):
-        print("Performing warm-up run", str(i+1))
-        for sequence in ['foliage', 'walk', 'calendar', 'city']:
-            bix_dir = os.path.join(VID4_DIR, 'BIx4', sequence)
-            upsampler.run_dir(bix_dir, reset=False)
+    if warm_runs > 0:
+        print("Warming up for evaluation")
+        for i in range(warm_runs):
+            print("Performing warm-up run", str(i+1))
+            for sequence in ['foliage', 'walk', 'calendar', 'city']:
+                bix_dir = os.path.join(VID4_DIR, 'BIx4', sequence)
+                upsampler.run_dir(bix_dir, reset=False)
     
     time = 0.
     psnr = 0.
@@ -79,9 +80,13 @@ def _eval_sr_perf(sr_dir, hr_dir, metrics=['psnr', 'ssim']):
 def _get_psnr(im1_path, im2_path):
     im1 = tf.image.decode_png(tf.io.read_file(im1_path), channels=3)
     im1 = tf.image.convert_image_dtype(im1, dtype=tf.float32)
+    im1 = tf.image.rgb_to_yuv(im1)
+    im1 = im1[:, :, 0]
     im1 = tf.expand_dims(im1, 0)
     im2 = tf.image.decode_png(tf.io.read_file(im2_path), channels=3)
     im2 = tf.image.convert_image_dtype(im2, dtype=tf.float32)
+    im2 = tf.image.rgb_to_yuv(im2)
+    im2 = im2[:, :, 0]
     im2 = tf.expand_dims(im2, 0)
     return tf.image.psnr(im1, im2, max_val=1.).numpy()
 
@@ -107,7 +112,7 @@ def evaluate_bicubic(metrics=['psnr', 'ssim', 'fps']):
 
 if __name__=='__main__':
     args = ModelArgs(
-        epoch=9,
+        epoch=23,
         scale=4,
         size='s',
         upscale='sp',
@@ -116,7 +121,7 @@ if __name__=='__main__':
         activation_removal=False,
         recurrent=True
     )
-    perf = evaluate_bicubic()
-    #perf = evaluate_model(args)
-    print('psnr:', perf.psnr[0])
+    #perf = evaluate_bicubic()
+    perf = evaluate_model(args)
+    print('psnr:', perf.psnr)
     print('fps:', perf.fps)

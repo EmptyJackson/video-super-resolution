@@ -43,13 +43,13 @@ def core_model(args):
 
     if args.size == Size.LARGE:
         depth = 16
-        num_filters = 32
+        num_filters = 64
     elif args.size == Size.MED:
         depth = 4
-        num_filters = 16
+        num_filters = 32
     else:
         depth = 1
-        num_filters = 8
+        num_filters = 16
 
     x_in = tf.keras.Input(shape=(None, None, 3))
     if not args.recurrent:
