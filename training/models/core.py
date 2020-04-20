@@ -55,7 +55,7 @@ def core_model(args):
     if not args.recurrent:
         # single-image
         x = Conv2D(
-            filters=num_filters,
+            filters=64,
             kernel_size=3,
             strides=1,
             padding="same",
@@ -66,7 +66,7 @@ def core_model(args):
         # video-based
         x = K.expand_dims(x_in, 0)
         x = ConvLSTM2D(
-            filters=num_filters,
+            filters=64,
             kernel_size=3,
             strides=1,
             padding="same",
@@ -113,7 +113,7 @@ def core_model(args):
     
     if not args.recurrent:
         x = Conv2D(
-            filters=num_filters,
+            filters=64,
             kernel_size=3,
             strides=1,
             padding="same",
@@ -123,7 +123,7 @@ def core_model(args):
     else:
         x = K.expand_dims(x, 0)
         x = ConvLSTM2D(
-            filters=num_filters,
+            filters=64,
             kernel_size=3,
             strides=1,
             padding="same",
