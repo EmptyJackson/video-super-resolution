@@ -112,14 +112,14 @@ def evaluate_bicubic(metrics=['psnr', 'ssim', 'fps']):
 
 if __name__=='__main__':
     args = ModelArgs(
-        epoch=23,
+        epoch=315,
         scale=4,
-        size='s',
+        size='m',
         upscale='sp',
-        residual='n',
+        residual='g',
         activation='r',
         activation_removal=False,
-        recurrent=True
+        recurrent=False
     )
     #perf = evaluate_bicubic()
     perf = evaluate_model(args)
