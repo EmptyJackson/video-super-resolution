@@ -40,7 +40,7 @@ class Vsr:
 
         model_found = False
         for args in MODEL_RANKING:
-            perf = evaluate_model(args, resolution, metrics=['fps'])
+            perf = evaluate_model(args, resolution)
             if perf.fps < min_fps:
                 self.upsampler = Upsampler(args)
                 model_found = True

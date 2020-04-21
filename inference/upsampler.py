@@ -89,6 +89,9 @@ class Upsampler:
             im.save(os.path.join(dest_dir, pred_file))
         return time
 
+    def get_model_dir(self):
+        return CORE_DIR(self._args)
+
     def _execute_bicubic(self, dataset):
         for batch in dataset:
             start = tf.timestamp()
