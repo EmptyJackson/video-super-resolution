@@ -50,7 +50,7 @@ def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batche
         else:
             tf.print("Training epoch complete, calculating validation loss...")
             val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)
-            tf.print("Train loss:", history.history['loss'][0], "   Validation loss: ", val_loss)
+            tf.print("Train loss:", '%.5f' % history.history['loss'][0], "   Validation loss: ", '%.5f' % val_loss)
 
         if ckpt_args.epochs and (epoch % ckpt_args.epochs) == 0:
             save_model_weights(model, epoch, ckpt_args)
