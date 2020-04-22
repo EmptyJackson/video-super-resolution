@@ -83,7 +83,7 @@ def core_model(args):
             strides=1,
             padding="same",
             kernel_initializer=tf.random_normal_initializer(stddev=0.01),
-            name="conv1"
+            name="local_resid_conv"
         )(x)
     elif args.residual == Residual.LOCAL:
         x_res = x
