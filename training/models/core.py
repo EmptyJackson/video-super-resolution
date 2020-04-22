@@ -76,7 +76,18 @@ def core_model(args):
         )(x)
         x = K.squeeze(x, 0)
 
-    x_res = x
+    if args.residual == Residual.LOCAL:
+        x = Conv2D(
+            filters=num_filters,
+            kernel_size=3,
+            strides=1,
+            padding="same",
+            kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+            name="conv1"
+        )(x)
+    elif args.residual == Residual.LOCAL:
+        x_res = x
+
     for i in range(depth):
         if args.residual == Residual.LOCAL:
             x_res = x
