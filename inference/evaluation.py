@@ -11,14 +11,14 @@ from upsampler import Upsampler, ModelArgs
 VID4_DIR = "data/vid4"
 VID4_LENGTH = 167
 SAMPLE_ARGS = ModelArgs(
-        epoch=13,
+        epoch=5,
         scale=4,
-        size='s',
+        size='m',
         upscale='sp',
         residual='n',
         activation='r',
         activation_removal=False,
-        recurrent=True
+        recurrent=False
     )
 
 class Performance:
