@@ -108,7 +108,7 @@ def _get_psnr(im1_src, im2_src):
 def _get_ssim(im1_src, im2_src):
     im1 = tf.expand_dims(im1_src, 0)
     im2 = tf.expand_dims(im2_src, 0)
-    return tf.image.ssim(im1, im2, max_val=1.).numpy()
+    return tf.image.ssim(im1, im2, max_val=1.).numpy()[0]
 
 def evaluate_bicubic(metrics=['psnr', 'ssim', 'fps']):
     """
