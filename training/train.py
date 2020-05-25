@@ -46,7 +46,6 @@ def train(model, loader, stopping_criterion, learn_rate, ckpt_args, train_batche
 
         if val_dataset is None:
             tf.print("Train loss:", history.history['loss'][0])
-            #tf.print("Train psnr:", history.history['PSNR']) TBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBCTBC
         else:
             tf.print("Training epoch complete, calculating validation loss...")
             val_loss = eval_model(model, val_dataset, tf.losses.mean_squared_error)

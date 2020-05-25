@@ -11,13 +11,33 @@ Core model ranking
 """
 MODEL_RANKING = [
     ModelArgs(
-        epoch=9,
+        epoch=300,
+        scale=4,
+        size='m',
+        upscale='sp',
+        residual='l',
+        activation='r',
+        activation_removal=True,
+        recurrent=True
+    ),
+    ModelArgs(
+        epoch=300,
+        scale=4,
+        size='m',
+        upscale='sp',
+        residual='l',
+        activation='r',
+        activation_removal=True,
+        recurrent=False
+    ),
+    ModelArgs(
+        epoch=200,
         scale=4,
         size='s',
-        upscale='de',
-        residual='n',
+        upscale='sp',
+        residual='l',
         activation='r',
-        activation_removal=False,
+        activation_removal=True,
         recurrent=True
     )
 ]
